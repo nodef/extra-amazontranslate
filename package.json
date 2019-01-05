@@ -1,14 +1,14 @@
 {
   "name": "extra-amazontranslate",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Translate long text from one language to another (via \"Amazon Translate\").",
   "main": "index.js",
+  "preferGlobal": true,
+  "bin": {
+    "amazontts": "index.js"
+  },
   "scripts": {
     "test": "exit"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nodef/extra-amazontranslate.git"
   },
   "keywords": [
     "extra",
@@ -24,10 +24,22 @@
     "shell",
     "merferry"
   ],
-  "author": "wolfram77@gmail.com",
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nodef/extra-amazontranslate.git"
+  },
   "bugs": {
     "url": "https://github.com/nodef/extra-amazontranslate/issues"
   },
-  "homepage": "https://github.com/nodef/extra-amazontranslate#readme"
+  "homepage": "https://github.com/nodef/extra-amazontranslate#readme",
+  "author": "wolfram77@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.384.0",
+    "boolean": "^0.2.0",
+    "get-stdin": "^6.0.0",
+    "ini": "^1.3.5",
+    "lodash": "^4.17.11",
+    "random-item": "^1.0.0"
+  }
 }
