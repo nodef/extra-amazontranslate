@@ -99,7 +99,6 @@ function options(o, k, a, i) {
   else if(k==='-l' || k==='--log') o.log = true;
   else if(k==='-o' || k==='--output') o.output= a[++i];
   else if(k==='-t' || k==='--text') o.text = a[++i];
-  else if(k.startsWith('--config')) 
   else if(k==='-sr' || k==='--service_region') _.set(o, 'service.region', a[++i]);
   else if(k==='-se' || k==='--service_endpoint') _.set(o, 'service.endpoint', a[++i]);
   else if(k==='-ci' || k==='--credentials_id') _.set(o, 'credentials.id', a[++i]);
