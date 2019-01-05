@@ -13,27 +13,16 @@ const fs = require('fs');
 const E = process.env;
 const STDIO = [0, 1, 2];
 const OPTIONS = {
-  help: false,
   log: boolean(E['TRANSLATE_LOG']||'0'),
-  output: E['TRANSLATE_OUTPUT']||null,
-  text: E['TRANSLATE_TEXT']||null,
-  retries: parseInt(E['TRANSLATE_RETRIES']||'8', 10),
-  service: {
-    region: E['TRANSLATE_SERVICE_REGION']||null,
-    endpoint: E['TRANSLATE_SERVICE_ENDPOINT']||null
-  },
-  credentials: {
-    id: E['TRANSLATE_CREDENTIALS_ID']||null,
-    key: E['TRANSLATE_CREDENTIALS_KEY']||null,
-    path: E['TRANSLATE_CREDENTIALS_PATH']||null
-  },
-  language: {
-    source: E['TRANSLATE_LANGUAGE_SOURCE']||null,
-    target: E['TRANSLATE_LANGUAGE_TARGET']||null
-  },
-  block: {
-    length: parseInt(E['TRANSLATE_BLOCK_LENGTH']||'3000', 10),
-    separator: E['TRANSLATE_BLOCK_SEPARATOR']||'.'
+  from: E['TRANSLATE_FROM']||'auto',
+  to: E['TRANSLATE_TO']||'en',
+  config: {
+    endpoint: E['AWS_TRANSLATE_ENDPOINT']||E['AWS_ENDPOINT'],
+    accessKeyId: E['AWS_TRANSLATE_ACCESSKEYID']||E['AWS_ACCESSKEYID'],
+    secretAccessKey: E['AWS_TRANSLATE_SECRETACCESSKEY']||E['AWS_SECRETACCESSKEY'],
+    region: E['AWS_TRANSLATE_REGION']||E['AWS_REGION'],
+    maxRetries: parseInt(E['AWS_TRANSLATE_MAXRETRIES']||E['AWS_MAXRETRIES']||'0', 10),
+    maxRedirects: parseInt(E['AWS_TRANSLATE_MAXREDIRECTS']||E['AWS_MAXREDIRECTS'])
   }
 };
 
@@ -74,109 +63,35 @@ function translateConfig(o) {
   return z;
 };
 
-// Get Translate translate text params.
-function translateTranslateTextParams(txt, o) {
-  return {Text: txt, SourceLanguageCode: o.language.source||'auto', TargetLanguageCode: o.language.target};
-};
-
-// Get translate block from long text.
-function textTranslateBlock(txt, o) {
-  var b = o.block;
-  for(var end=b.length;;) {
-    end = Math.floor(0.75*end);
-    var i = txt.lastIndexOf(b.separator, end)+1;
-    i = i>0? i:Math.min(txt.length, end);
-    var blk = txt.substring(0, i);
-    if(blk.length<b.length) break;
-  }
-  return [blk, txt.substring(i)];
-};
-
-// Translate text block.
-function textTranslate(txt, obj, o) {
-  var l = o.log, req = o.params; req.Text = txt;
-  return new Promise((fres, frej) => {
-    obj.translateText(req, (err, res) => {
-      if(err) return frej(err);
-      if(l) console.log('-textTranslate:', res.TranslatedText.length);
-      return fres(res.TranslatedText);
-    });
-  });
-};
-
-// Translate text block, with retries.
-async function textsRetryTranslate(txt, obj, o) {
-  var err = null;
-  for(var i=0; i<o.retries; i++) {
-    try { return await textTranslate(txt, obj, o); }
-    catch(e) { err = e; }
-  }
-  throw err;
-};
-
-// Generate output text block parts.
-function outputBlocks(txt, o) {
-  for(var i=0, z=[]; txt; i++) {
-    var [blk, txt] = textTranslateBlock(txt, o);
-    z[i] = blk;
+// Get text blocks.
+function blocks(txt, siz=2500, sep=' ') {
+  for(var i=0, I=txt.length, z=[]; i<I; i=e) {
+    var e = txt.lastIndexOf(sep, i+siz);
+    z.push(txt.substring(i, e>i? e:i+siz));
   }
   return z;
 };
 
-// Generate text block parts.
-function outputAudios(out, ssmls, tts, o) {
-  if(o.log) console.log('-outputAudios:', out, ssmls.length);
-  var pth = pathFilename(out), ext = path.extname(out);
-  for(var i=0, I=ssmls.length, z=[]; i<I; i++)
-    z[i] = textsRetryTranslate(`${pth}.${i}${ext}`, ssmls[i], tts, o);
-  return Promise.all(z);
-};
-
-// Generate output audio file.
-async function outputAudio(out, auds, o) {
-  if(o.log) console.log('-outputAudio:', out, auds.length);
-  var lst = tempy.file({extension: 'txt'}), dat = '';
-  for(var aud of auds)
-    dat += `file '${aud}'\n`;
-  await fsWriteFile(lst, dat);
-  var z = await cpExec(`ffmpeg -y -safe 0 -f concat -i "${lst}" -acodec ${o.acodec} "${out}"`, o);
-  fs.unlink(lst, FN_NOP);
-  return z;
+// Translate text.
+function translate(aws, txt, o) {
+  var params = {Text: txt, SourceLanguageCode: o.from||'auto', TargetLanguageCode: o.to||'en'};
+  return new Promise((fres, frej) => aws.translateText(params, (err, data) => {
+    return err? frej(err):fres(data.TranslatedText);
+  }));
 };
 
 /**
  * Translate long text from one language to another (via "Amazon Translate").
- * @param {string} txt input text.
- * @param {object} o options.
- * @returns promise <translated text>.
+ * @param {string} text Input text to be translated.
+ * @param {object} [options] Translation and config options.
+ * @returns {Promise<string>} Translated text.
  */
-async function amazontranslate(txt, o) {
-  var o = _.merge({}, OPTIONS, o);
-  var out = out||o.output, c = o.credentials;
-  var txt = txt||o.input||(o.text? await fsReadFile(o.text, 'utf8'):null);
-  if(o.log) console.log('@amazontts:', out, txt);
-  o.params = o.params||translateTranslateTextParams(out, null, o);
-  var tts = new Polly(o.config||translateConfig(o));
-  var ext = path.extname(out);
-  var aud = tempy.file({extension: ext.substring(1)});
-  var secs = textSections('\n'+txt), prts = [], ssmls = [];
-  for(var sec of secs) {
-    var secSsmls = outputBlocks(sec.content, o);
-    prts.push(secSsmls.length);
-    Array.prototype.push.apply(ssmls, secSsmls);
-  }
-  var auds = await outputAudios(aud, ssmls, tts, o);
-  out = await outputAudio(out, auds, o);
-  var durs = await outputDurations(auds);
-  for(var i=0, j=0, t=0, toc=[], I=secs.length; i<I; i++) {
-    toc[i] = {title: secs[i].title, time: timeFormat(t)};
-    for(var p=0; p<prts[i]; p++)
-      t += durs[j++];
-  }
-  for(var f of auds) fs.unlink(f, FN_NOP);
-  if(o.log) console.log(' .toc:', toc);
-  return toc;
+async function amazontranslate(text, options) {
+  var o = Object.assign({}, OPTIONS, options);
+  var aws = new Translate(o.config);
+  return (await Promise.all(blocks(text).map(b => translate(aws, b, o)))).join('');
 };
+
 
 // Get options from arguments.
 function options(o, k, a, i) {
@@ -184,7 +99,7 @@ function options(o, k, a, i) {
   else if(k==='-l' || k==='--log') o.log = true;
   else if(k==='-o' || k==='--output') o.output= a[++i];
   else if(k==='-t' || k==='--text') o.text = a[++i];
-  else if(k==='-r' || k==='--retries') o.retries = parseInt(a[++i], 10);
+  else if(k.startsWith('--config')) 
   else if(k==='-sr' || k==='--service_region') _.set(o, 'service.region', a[++i]);
   else if(k==='-se' || k==='--service_endpoint') _.set(o, 'service.endpoint', a[++i]);
   else if(k==='-ci' || k==='--credentials_id') _.set(o, 'credentials.id', a[++i]);
