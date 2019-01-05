@@ -2,7 +2,9 @@
 const Translate = require('aws-sdk/clients/translate');
 const randomItem = require('random-item');
 const getStdin = require('get-stdin');
+const iso6391 = require('iso-639-1');
 const boolean = require('boolean');
+const got = require('got');
 const ini = require('ini');
 const _ = require('lodash');
 const cp = require('child_process');
@@ -16,50 +18,23 @@ const OPTIONS = {
   log: boolean(E['TRANSLATE_LOG']||'0'),
   from: E['TRANSLATE_FROM']||'auto',
   to: E['TRANSLATE_TO']||'en',
-  config: {
-    endpoint: E['AWS_TRANSLATE_ENDPOINT']||E['AWS_ENDPOINT'],
-    accessKeyId: E['AWS_TRANSLATE_ACCESSKEYID']||E['AWS_ACCESSKEYID'],
-    secretAccessKey: E['AWS_TRANSLATE_SECRETACCESSKEY']||E['AWS_SECRETACCESSKEY'],
-    region: E['AWS_TRANSLATE_REGION']||E['AWS_REGION'],
-    maxRetries: parseInt(E['AWS_TRANSLATE_MAXRETRIES']||E['AWS_MAXRETRIES']||'0', 10),
-    maxRedirects: parseInt(E['AWS_TRANSLATE_MAXREDIRECTS']||E['AWS_MAXREDIRECTS'])
+  lambda: boolean(E['TRANSLATE_LAMBDA']||'1'),
+  block: {
+    separator: E['TRANSLATE_BLOCK_SEPARATOR']||'.',
+    length: parseInt(E['TRANSLATE_BLOCK_LENGTH']||'2000', 10)
   }
 };
+const LAMBDA_URL = 'https://wp2fp09iva.execute-api.us-east-1.amazonaws.com/default/api-amazontranslate';
 
 
-// Read file, return promise.
-function fsReadFile(pth, o) {
-  return new Promise((fres, frej) => fs.readFile(pth, o, (err, data) => {
-    return err? frej(err):fres(data);
-  }));
-};
-
-// Write file, return promise.
-function fsWriteFile(pth, dat, o) {
-  return new Promise((fres, frej) => fs.writeFile(pth, dat, o, (err) => {
-    return err? frej(err):fres();
-  }));
-};
-
-// Load Translate config from path.
-function translateConfigLoad(pth) {
+// Load config from path.
+function configLoad(pth) {
   var dat = fs.readFileSync(pth, 'utf8');
   if(pth.endsWith('.json')) return JSON.parse(dat);
   var cfg = ini.parse(dat), z = {};
   cfg = cfg.default||cfg;
   for(var k in cfg)
     z[_.camelCase(k.replace(/^aws_/, ''))] = cfg[k];
-  return z;
-};
-
-// Get Translate config.
-function translateConfig(o) {
-  var s = o.service, c = o.credentials;
-  var z = c.path? translateConfigLoad(randomItem(c.path.split(';'))):{};
-  z.endpoint = s.endpoint||z.endpoint;
-  z.accessKeyId = c.id||z.accessKeyId;
-  z.secretAccessKey = c.key||z.secretAccessKey;
-  z.region = s.region||z.region||'us-east-1';
   return z;
 };
 
@@ -73,8 +48,12 @@ function blocks(txt, siz=2500, sep=' ') {
 };
 
 // Translate text.
-function translate(aws, txt, o) {
+async function translate(aws, txt, o) {
   var params = {Text: txt, SourceLanguageCode: o.from||'auto', TargetLanguageCode: o.to||'en'};
+  if(o.lambda) {
+    var res = await got(LAMBDA_URL, {body: JSON.stringify({method: 'translateText', params})});
+    return JSON.parse(res.body).TranslatedText;
+  }
   return new Promise((fres, frej) => aws.translateText(params, (err, data) => {
     return err? frej(err):fres(data.TranslatedText);
   }));
@@ -99,15 +78,10 @@ function options(o, k, a, i) {
   else if(k==='-l' || k==='--log') o.log = true;
   else if(k==='-o' || k==='--output') o.output= a[++i];
   else if(k==='-t' || k==='--text') o.text = a[++i];
-  else if(k==='-sr' || k==='--service_region') _.set(o, 'service.region', a[++i]);
-  else if(k==='-se' || k==='--service_endpoint') _.set(o, 'service.endpoint', a[++i]);
-  else if(k==='-ci' || k==='--credentials_id') _.set(o, 'credentials.id', a[++i]);
-  else if(k==='-ck' || k==='--credentials_key') _.set(o, 'credentials.key', a[++i]);
-  else if(k==='-cp' || k==='--credentials_path') _.set(o, 'credentials.path', a[++i]);
-  else if(k==='-ls' || k==='--language_source') _.set(o, 'language.source', a[++i]);
-  else if(k==='-lt' || k==='--language_target') _.set(o, 'language.target', a[++i]);
-  else if(k==='-bl' || k==='--block_length') _.set(o, 'block.length', parseInt(a[++i], 10));
-  else if(k==='-bs' || k==='--block_separator') _.set(o, 'block.separator', a[++i]);
+  else if(k==='--from') o.from = a[++i];
+  else if(k==='--to') o.to = a[++i];
+  else if(k.startsWith('--block_')) _.set(o, 'block.'+k.substring(8), a[++i]);
+  else if(k.startsWith('--config_')) _.set(o, 'config.'+_.camelCase(k.substring(9)), a[++i]);
   else o.input = a[i];
   return i+1;
 };
@@ -117,10 +91,14 @@ module.exports = amazontranslate;
 // Run on shell.
 async function shell(a) {
   var o = {input: await getStdin()};
+  var cfg = E['AWSTRANSLATE']
   for(var i=2, I=a.length; i<I;)
     i = options(o, a[i], a, i);
   if(o.help) return cp.execSync('less README.md', {cwd: __dirname, stdio: STDIO});
-  var txt = await amazontranslate(null, null, o);
-  console.log(txt);
+  if(o.config && o.config.file) o.config = Object.assign({}, configLoad(o.config.file), o.config);
+  var txt = o.text? fs.readFileSync(o.text, 'utf8'):o.input||'';
+  var out = await amazontranslate(txt, o);
+  if(o.output) fs.writeFileSync(o.output, out);
+  else console.log(out);
 };
 if(require.main===module) shell(process.argv);
