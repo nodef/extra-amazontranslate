@@ -39,7 +39,7 @@ function configLoad(pth) {
 };
 
 // Get text blocks.
-function blocks(txt, siz=2500, sep=' ') {
+function blocks(txt, siz=2500, sep='.') {
   for(var i=0, I=txt.length, z=[]; i<I; i=e) {
     var e = txt.lastIndexOf(sep, i+siz);
     z.push(txt.substring(i, e=e>i? e:i+siz));
@@ -52,7 +52,7 @@ async function translate(aws, txt, o) {
   var params = {Text: txt, SourceLanguageCode: o.from||'auto', TargetLanguageCode: o.to||'en'};
   if(o.lambda) {
     var res = await got(LAMBDA_URL, {body: JSON.stringify({method: 'translateText', params})});
-    return JSON.parse(res.body).TranslatedText;
+    return JSON.parse(res.body).data.TranslatedText;
   }
   return new Promise((fres, frej) => aws.translateText(params, (err, data) => {
     return err? frej(err):fres(data.TranslatedText);
@@ -68,7 +68,8 @@ async function translate(aws, txt, o) {
 async function amazontranslate(text, options) {
   var o = Object.assign({}, OPTIONS, options);
   var aws = new Translate();
-  return (await Promise.all(blocks(text).map(b => translate(aws, b, o)))).join('');
+  var blks = blocks(text);
+  return (await Promise.all(blks.map(b => translate(aws, b, o)))).join('');
 };
 
 
@@ -91,7 +92,6 @@ module.exports = amazontranslate;
 // Run on shell.
 async function shell(a) {
   var o = {input: await getStdin()};
-  var cfg = E['AWSTRANSLATE']
   for(var i=2, I=a.length; i<I;)
     i = options(o, a[i], a, i);
   if(o.help) return cp.execSync('less README.md', {cwd: __dirname, stdio: STDIO});

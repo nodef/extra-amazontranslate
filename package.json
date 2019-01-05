@@ -1,6 +1,6 @@
 {
   "name": "extra-amazontranslate",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Translate long text from one language to another (via \"Amazon Translate\").",
   "main": "index.js",
   "preferGlobal": true,
