@@ -67,9 +67,10 @@ async function translate(aws, txt, o) {
  */
 async function amazontranslate(text, options) {
   var o = Object.assign({}, OPTIONS, options);
-  var aws = new Translate();
-  var blks = blocks(text);
-  return (await Promise.all(blks.map(b => translate(aws, b, o)))).join('');
+  var aws = new Translate(), z = '';
+  for(var blk of blocks(text))
+    z += (await translate(aws, blk, o));
+  return z;
 };
 
 
