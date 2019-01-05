@@ -67,7 +67,7 @@ function translateConfig(o) {
 function blocks(txt, siz=2500, sep=' ') {
   for(var i=0, I=txt.length, z=[]; i<I; i=e) {
     var e = txt.lastIndexOf(sep, i+siz);
-    z.push(txt.substring(i, e>i? e:i+siz));
+    z.push(txt.substring(i, e=e>i? e:i+siz));
   }
   return z;
 };
@@ -88,7 +88,7 @@ function translate(aws, txt, o) {
  */
 async function amazontranslate(text, options) {
   var o = Object.assign({}, OPTIONS, options);
-  var aws = new Translate(o.config);
+  var aws = new Translate();
   return (await Promise.all(blocks(text).map(b => translate(aws, b, o)))).join('');
 };
 
