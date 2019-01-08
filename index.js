@@ -1,11 +1,10 @@
 #!/usr/bin/env node
-const awsconfig = require('extra-awsconfig');
-const getStdin = require('get-stdin');
 const iso6391 = require('iso-639-1').default;
-const boolean = require('boolean');
+const awsconfig = require('extra-awsconfig');
 const AWS = require('aws-sdk');
 const got = require('got');
-const _ = require('lodash');
+const getStdin = require('get-stdin');
+const boolean = require('boolean');
 const cp = require('child_process');
 const fs = require('fs');
 
@@ -19,7 +18,8 @@ const OPTIONS = {
   service: E['TRANSLATE_SERVICE']||null,
   from: E['TRANSLATE_FROM']||'auto',
   to: E['TRANSLATE_TO']||'en',
-  separator: E['TRANSLATE_SEPARATOR']||'.'
+  separator: E['TRANSLATE_SEPARATOR']||'.',
+  config: null
 };
 const RTOPIC = /(=+)([\w\s]+)\1\r?\n/;
 
