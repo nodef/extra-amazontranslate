@@ -29,6 +29,11 @@ const OPTIONS = {
 };
 
 
+// Shorten text.
+function shorten(txt, len=50) {
+  return txt.length>len? txt.substring(0, len-4)+' ...':txt;
+};
+
 // Get text split by topics.
 function splitTopic(txt, z=[]) {
   var re = /(\s*)(=+)([\w\s]+)\2(\s*\r?\n)/g;
@@ -99,7 +104,9 @@ async function amazontranslate(txt, o) {
   o.source = langCode(o.source); o.target = langCode(o.target);
   var aws = new AWS.Translate(awsconfig(o.config)), txts=[];
   split(txt, o.block.length, o.block.separator, txts);
+  if(o.log) console.log('@amazontranslate:', Math.floor(txts.length/2), shorten(txt));
   for(var i=0, I=txts.length; i<I; i+=2) {
+    if(o.log) console.log('.translateRetry', i/2, shorten(txts[i]));
     z += txts[i]? await translateRetry(aws, txts[i], o):'';
     z += txts[i+1]||'';
   }
@@ -137,8 +144,11 @@ async function shell(a) {
     i = options(o, a[i], a, i);
   if(o.help) return cp.execSync('less README.md', {cwd: __dirname, stdio: STDIO});
   var txt = o.text? fs.readFileSync(o.text, 'utf8'):o.argv||'';
-  var out = await amazontranslate(txt, o);
-  if(o.output) fs.writeFileSync(o.output, out);
-  else console.log(out);
+  try {
+    var out = await amazontranslate(txt, o);
+    if(o.output) fs.writeFileSync(o.output, out);
+    else console.log(out);
+  }
+  catch(err) { console.error(err.message); }
 };
 if(require.main===module) shell(process.argv);
