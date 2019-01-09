@@ -125,7 +125,7 @@ Suggestions are welcome. Please [create an issue].
 <br><br>
 
 
-[![nodef](https://i.imgur.com/Ui0cS8T.jpg)](https://nodef.github.io)
+[![nodef](https://i.imgur.com/1ELgVHI.jpg)](https://nodef.github.io)
 > References: [Extra AWS Config], [AWS Translate API], [language codes], [language pairs].
 
 ["Amazon Translate"]: https://aws.amazon.com/translate/
