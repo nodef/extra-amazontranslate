@@ -15,10 +15,15 @@ const STDIO = [0, 1, 2];
 const OPTIONS = {
   log: boolean(E['TRANSLATE_LOG']||'0'),
   retries: parseInt(E['TRANSLATE_RETRIES']||'8', 10),
-  service: E['TRANSLATE_SERVICE']||null,
-  from: E['TRANSLATE_FROM']||'auto',
-  to: E['TRANSLATE_TO']||'en',
-  separator: E['TRANSLATE_SEPARATOR']||'.',
+  source: E['TRANSLATE_SOURCE']||'auto',
+  target: E['TRANSLATE_TARGET']||'en',
+  service: {
+    url: E['TRANSLATE_SERVICE_URL']||null
+  },
+  block: {
+    separator: E['TRANSLATE_BLOCK_SEPARATOR']||'.',
+    length: parseInt(E['TRANSLATE_BLOCK_LENGTH']||'2500', 10)
+  },
   config: null
 };
 const RTOPIC = /(=+)([\w\s]+)\1\r?\n/;
