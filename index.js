@@ -124,7 +124,7 @@ function options(o, k, a, i) {
   else if(k==='-t' || k==='--text') o.text = str();
   else if(k==='-r' || k==='--retries') o.retries = parseInt(str(), 10);
   else if(k==='-os' || k==='--source') o.source = str();
-  else if(k==='-ot' || k==='--to') o.target = str();
+  else if(k==='-ot' || k==='--target') o.target = str();
   else if(k==='-bs' || k==='--block_separator') _.set(o, 'block.separator', str());
   else if(k==='-bl' || k==='--block_length') _.set(o, 'block.length', parseInt(str(), 10));
   else if(k==='-su' || k==='--service_url') _.set(o, 'service.url', str());
