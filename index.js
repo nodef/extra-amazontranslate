@@ -5,6 +5,7 @@ const AWS = require('aws-sdk');
 const got = require('got');
 const getStdin = require('get-stdin');
 const boolean = require('boolean');
+const _ = require('lodash');
 const cp = require('child_process');
 const fs = require('fs');
 
@@ -26,7 +27,6 @@ const OPTIONS = {
   },
   config: null
 };
-const RTOPIC = /(=+)([\w\s]+)\1\r?\n/;
 
 
 // Get text blocks.
@@ -38,11 +38,43 @@ function blocks(txt, siz=2500, sep='.') {
   return z;
 };
 
+// Get text split by topics.
+function splitTopic(txt, z=[]) {
+  var re = /(\s*)(=+)([\w\s]+)\2(\s*\r?\n)/g;
+  for(var m=null, mi=0; (m=re.exec(txt))!=null;) {
+    z.push(txt.substring(mi, m.index), m[1]+m[2], m[3], m[2]+m[4]);
+    mi = m.index+m[0].length;
+  }
+  if(mi<txt.length) a.push(txt.substring(mi));
+  return z;
+};
+
+// Get text split by blocks.
+function splitBlock(txt, siz, sep, z=[]) {
+  for(;txt;) {
+    var i = txt.lastIndexOf(sep, siz);
+    if(i<0) z.push(txt.substring(0, siz), '');
+    else z.push(txt.substring(0, i), sep);
+  }
+  if(z.length&1===0) z.push('');
+  return z;
+};
+
+// Get text split.
+function split(txt, siz=2500, sep='.', z=[]) {
+  var tops = splitTopic(txt);
+  for(var i=0, I=tops.length; i<I; i+=2) {
+    splitBlock(tops[i], siz, sep, z);
+    z.push(tops[i+1]||'');
+  }
+  return z;
+};
+
 // Translate text.
 async function translate(aws, txt, o) {
   var params = {Text: txt, SourceLanguageCode: o.source||'auto', TargetLanguageCode: o.target||'en'};
-  if(o.service) {
-    var res = await got(o.service, {body: JSON.stringify({method: 'translateText', params})});
+  if(o.service.url) {
+    var res = await got(o.service.url, {body: JSON.stringify({method: 'translateText', params})});
     return JSON.parse(res.body).data.TranslatedText;
   }
   return new Promise((fres, frej) => aws.translateText(params, (err, data) => {
@@ -53,45 +85,47 @@ async function translate(aws, txt, o) {
 // Translate text with retries.
 async function translateRetry(aws, txt, o) {
   for(var i=0, I=o.retries||8, err=null; i<I; i++) {
-    try { return translate(aws, txt, o); }
+    try { return await translate(aws, txt, o); }
     catch(e) { err = e; }
   }
   throw err;
 };
 
-
 /**
  * Translate long text from one language to another (via "Amazon Translate").
- * @param {string} text Input text to be translated.
- * @param {object} [options] Translation and config options.
+ * @param {string} txt Input text to be translated.
+ * @param {object} [o] Translation and config options.
  * @returns {Promise<string>} Translated text.
  */
-async function amazontranslate(text, options) {
-  var o = Object.assign({}, OPTIONS, options);
-  var aws = new AWS.Translate(o.config), z = '';
-  for(var i=0, I=txt.length; i<I; i=e) {
-
+async function amazontranslate(txt, o) {
+  var o = _.merge({}, OPTIONS, o), z='';
+  var aws = new AWS.Translate(o.config), txts=[];
+  split(txt, o.block.length, o.block.separator, txts);
+  for(var i=0, I=txts.length; i<I; i+=2) {
+    z += txts[i]? await translateRetry(aws, txts[i], o):z;
+    z += txts[i+1]||'';
   }
-  for(var blk of blocks(text))
-    z += (await translate(aws, blk, o));
   return z;
 };
 
 // Get options from arguments.
 function options(o, k, a, i) {
   o.config = o.config||{};
-  if(k==='--help') o.help = true;
-  else if(k==='-l' || k==='--log') o.log = true;
-  else if(k==='-o' || k==='--output') o.output= a[++i];
-  else if(k==='-t' || k==='--text') o.text = a[++i];
-  else if(k==='-r' || k==='--retries') o.retries = parseInt(a[++i], 10);
-  else if(k==='-s' || k==='--service') o.service = a[++i];
-  else if(k==='-tf' || k==='--from') o.from = a[++i];
-  else if(k==='-tt' || k==='--to') o.to = a[++i];
-  else if(k==='-ts' || k==='--separator') o.separator = a[++i];
+  var e = k.indexOf('='), v = null, bool = () => true, str = () => a[++i];
+  if(e>=0) { v = k.substring(e+1); bool = () => boolean(v); str = () => v; k = k.substring(o, e); }
+  if(k==='--help') o.help = bool();
+  else if(k==='-l' || k==='--log') o.log = bool();
+  else if(k==='-o' || k==='--output') o.output= str();
+  else if(k==='-t' || k==='--text') o.text = str();
+  else if(k==='-r' || k==='--retries') o.retries = parseInt(str(), 10);
+  else if(k==='-os' || k==='--source') o.source = str();
+  else if(k==='-ot' || k==='--to') o.target = str();
+  else if(k==='-bs' || k==='--block_separator') _.set(o, 'block.separator', str());
+  else if(k==='-bl' || k==='--block_length') _.set(o, 'block.length', parseInt(str(), 10));
+  else if(k==='-su' || k==='--service_url') _.set(o, 'service.url', str());
   else if(k.startsWith('-c')) return awsconfig.options(o.config, '-'+k.substring(2), a, i);
   else if(k.startsWith('--config_')) return awsconfig.options(o.config, '--'+k.substring(9), a, i);
-  else o.input = a[i];
+  else o.argv = a[i];
   return i+1;
 };
 amazontranslate.options = options;

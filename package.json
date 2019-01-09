@@ -1,6 +1,6 @@
 {
   "name": "extra-amazontranslate",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Translate long text from one language to another (via \"Amazon Translate\").",
   "main": "index.js",
   "preferGlobal": true,
@@ -40,6 +40,7 @@
     "extra-awsconfig": "^1.2.4",
     "get-stdin": "^6.0.0",
     "got": "^9.5.0",
-    "iso-639-1": "^2.0.3"
+    "iso-639-1": "^2.0.3",
+    "lodash": "^4.17.11"
   }
 }
