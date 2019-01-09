@@ -32,7 +32,7 @@ amazontranslate "Hello 911, my husband is in danger!" -ot "fr"
 echo "Dead man walking." | amazontranslate --log -ot "pt"
 # get text (from stdin) in portugese (log enabled)
 ```
-> Available [TTS voices]?
+> Supported [language pairs]?
 
 
 ### reference
@@ -44,85 +44,49 @@ amazontranslate [options] <text>
 # Options:
 # --help:        show this help
 # -l, --log:     enable log
-# -o, --output:  set output audio file (out.mp3)
+# -o, --output:  set output text file
 # -t, --text:    set input text file
-# -r, --retries: set speech synthesis retries (8)
-# -a, --acodec:      set acodec (copy)
-# -sr, --service_region:    set region to send service requests to (us-east-1)
-# -se, --service_endpoint:  set endpoint to send requests to
-# -ci, --credentials_id:    set AWS access key id
-# -ck, --credentials_key:   set AWS secret access key
-# -cp, --credentials_path:  set AWS config path (~/.aws/config)
-# -ae, --audio_encoding:    set audio encoding
-# -as, --audio_frequency:   set audio frequency/sample rate in Hz
-# -tt, --text_type:         set text type (text)
-# -lc, --language_code:     set language code
-# -ll, --language_lexicons: set pronounciation lexicon names
-# -vn, --voice_name:        set voice name
-# -vg, --voice_gender:      set voice gender
-# -qb, --quote_break:        set quoted text break time (250)
-# -qe, --quote_emphasis:     set quoted text emphasis level (moderate)
-# -hb, --heading_break:      set heading text break time (4000)
-# -hd, --heading_difference: set heading text break difference (250)
-# -he, --heading_emphasis:   set heading text emphasis level (strong)
-# -eb, --ellipsis_break:     set ellipsis break time (1500)
-# -db, --dash_break:         set dash break time (500)
-# -nb, --newline_break:      set newline break time (1000)
-# -bl, --block_length:       set SSML block length (3000)
-# -bs, --block_separator:    set SSML block separator (.)
-## (all times are in milliseconds)
+# -r, --retries: set translate retries (8)
+# -os, --source: set source language (auto)
+# -ot, --target: set target language (en)
+# -bs, --block_separator: set translate block separator (.)
+# -bl, --block_length:    set translate block length (2500)
+# -c*, --config_*: set amazon config options (see Extra AWS Config options below)
 
 # Environment variables:
-$TTS_LOG     # enable log (0)
-$TTS_OUTPUT  # set output audio file (out.mp3)
-$TTS_TEXT    # set input text file
-$TTS_RETRIES # set speech synthesis retries (8)
-$TTS_ACODEC            # set audio acodec (copy)
-$TTS_SERVICE_REGION    # set region to send service requests to (us-east-1)
-$TTS_SERVICE_ENDPOINT  # set endpoint to send requests to
-$TTS_CREDENTIALS_ID    # set AWS access key id
-$TTS_CREDENTIALS_KEY   # set AWS secret access key
-$AWS_CONFIG_FILE       # set AWS config path (~/.aws/config)
-$TTS_CREDENTIALS_PATH  # set AWS config (json/ini) path
-$TTS_AUDIO_ENCODING    # set audio encoding format
-$TTS_AUDIO_FREQUENCY   # set audio frequency/sample rate in Hz
-$TTS_LANGUAGE_CODE     # set language code
-$TTS_LANGUAGE_LEXICONS # set pronounciation lexicon names
-$TTS_VOICE_NAME        # set voice name (Joanna)
-$TTS_VOICE_GENDER      # set voice gender (neutral)
-$TTS_QUOTE_BREAK        # set quoted text break time (250)
-$TTS_QUOTE_EMPHASIS     # set quoted text emphasis level (moderate)
-$TTS_HEADING_BREAK      # set heading text break time (4000)
-$TTS_HEADING_DIFFERENCE # set heading text break difference (250)
-$TTS_HEADING_EMPHASIS   # set heading text emphasis level (strong)
-$TTS_ELLIPSIS_BREAK     # set ellipsis break time (1500)
-$TTS_DASH_BREAK         # set dash break time (500)
-$TTS_NEWLINE_BREAK      # set newline break time (1000)
-$TTS_BLOCK_LENGTH       # set SSML block length (5000)
-$TTS_BLOCK_SEPARATOR    # set SSML block separator (.)
+$TRANSLATE_LOG     # enable log (0)
+$TRANSLATE_OUTPUT  # set output text file
+$TRANSLATE_TEXT    # set input text file
+$TRANSLATE_RETRIES # set translate retries (8)
+$TRANSLATE_SOURCE  # set source language (auto)
+$TRANSLATE_TARGET  # set target language (en)
+$TRANSLATE_BLOCK_SEPARATOR # set translate block separator (.)
+$TRANSLATE_BLOCK_LENGTH    # set translate block length (2500)
+... # see Extra AWS Config options below
 ```
+> See [Extra AWS Config] options.
 <br>
 
 
 ## package
 
 ```javascript
-const amazontts = require('extra-amazontts');
+const amazontranslate = require('extra-amazontranslate');
 
-await amazontts('out.mp3', 'I want to order a stuffed crust pizza');
+await amazontranslate('out.mp3', 'I want to order a stuffed crust pizza');
 // out.mp3 created (yay!)
 
 const fs = require('fs');
 var speech = fs.readFileSync('speech.txt', 'utf8');
-await amazontts('speech.mp3', speech)
+await amazontranslate('speech.mp3', speech)
 // speech.mp3 created from text in speech.txt
 
-await amazontts('out.mp3', 'Hello 911, my husband is in danger!', {
+await amazontranslate('out.mp3', 'Hello 911, my husband is in danger!', {
   voice: {gender: 'female'}
 });
 // out.mp3 created with female voice
 
-await amazontts('out.mp3', 'Dead man walking.', {
+await amazontranslate('out.mp3', 'Dead man walking.', {
   voice: {name: 'Matthew'}, quiet: true
 });
 // out.mp3 created with different male voice (quiet mode)
