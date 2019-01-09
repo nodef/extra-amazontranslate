@@ -1,4 +1,4 @@
-Translate long text from one language to another (via "Amazon Translate").
+Translate long text from one language to another (via ["Amazon Translate"]).
 > Do you want to:
 > - Share your ideas to people in their local language?
 > - Translate YouTube video subtitles to another language?
@@ -129,6 +129,7 @@ Suggestions are welcome. Please [create an issue].
 > References: [Extra AWS Config], [AWS Translate API], [language codes], [language pairs].
 
 ["Amazon Translate"]: https://aws.amazon.com/translate/
+[Upload Wikipedia TTS videos on YouTube]: https://www.youtube.com/results?search_query=wikipedia+audio+article
 
 [extra-awsconfig]: https://www.npmjs.com/package/extra-awsconfig
 [extra-amazontts]: https://www.npmjs.com/package/extra-amazontts
