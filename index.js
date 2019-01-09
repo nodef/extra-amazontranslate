@@ -91,6 +91,11 @@ async function translateRetry(aws, txt, o) {
   throw err;
 };
 
+// Get language code from name.
+function langCode(nam) {
+  return nam!=='auto' && !iso6391.validate(nam)? iso6391.getCode(nam):nam;
+};
+
 /**
  * Translate long text from one language to another (via "Amazon Translate").
  * @param {string} txt Input text to be translated.
@@ -100,6 +105,7 @@ async function translateRetry(aws, txt, o) {
 async function amazontranslate(txt, o) {
   var o = _.merge({}, OPTIONS, o), z='';
   var aws = new AWS.Translate(o.config), txts=[];
+  o.source = langCode(o.source); o.target = langCode(o.target);
   split(txt, o.block.length, o.block.separator, txts);
   for(var i=0, I=txts.length; i<I; i+=2) {
     z += txts[i]? await translateRetry(aws, txts[i], o):z;
@@ -134,13 +140,11 @@ module.exports = amazontranslate;
 
 // Run on shell.
 async function shell(a) {
-  var o = {input: await getStdin()};
+  var o = {argv: await getStdin()};
   for(var i=2, I=a.length; i<I;)
     i = options(o, a[i], a, i);
   if(o.help) return cp.execSync('less README.md', {cwd: __dirname, stdio: STDIO});
-  if(o.from!=='auto' && !iso6391.validate(o.from)) o.from = iso6391.getCode(o.from);
-  if(!iso6391.validate(o.to)) o.to = iso6391.getCode(o.to);
-  var txt = o.text? fs.readFileSync(o.text, 'utf8'):o.input||'';
+  var txt = o.text? fs.readFileSync(o.text, 'utf8'):o.argv||'';
   var out = await amazontranslate(txt, o);
   if(o.output) fs.writeFileSync(o.output, out);
   else console.log(out);
