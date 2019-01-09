@@ -73,121 +73,68 @@ $TRANSLATE_BLOCK_LENGTH    # set translate block length (2500)
 ```javascript
 const amazontranslate = require('extra-amazontranslate');
 
-await amazontranslate('out.mp3', 'I want to order a stuffed crust pizza');
-// out.mp3 created (yay!)
+await amazontranslate('I want to order a stuffed crust pizza', {target: 'es'});
+// get text in spanish
 
-const fs = require('fs');
-var speech = fs.readFileSync('speech.txt', 'utf8');
-await amazontranslate('speech.mp3', speech)
-// speech.mp3 created from text in speech.txt
-
-await amazontranslate('out.mp3', 'Hello 911, my husband is in danger!', {
-  voice: {gender: 'female'}
-});
-// out.mp3 created with female voice
-
-await amazontranslate('out.mp3', 'Dead man walking.', {
-  voice: {name: 'Matthew'}, quiet: true
-});
-// out.mp3 created with different male voice (quiet mode)
+await amazontranslate('Dead man walking.', {log: true, target: 'pt'});
+// get text in portugese (log enabled)
 ```
 
 ### reference
 
 ```javascript
-const amazontts = require('extra-amazontts');
+const amazontranslate = require('extra-amazontranslate');
 
-amazontts(output, text, options={})
-// output:  output audio file
-// text:    input text
-// options: given below
+amazontranslate(text, options={})
+// text:    input text to be translated
+// options: translation and config options
 // -> Promise <table of contents>
+
+# -r, --retries: 
+# -os, --source: 
+# -ot, --target: set target language (en)
+# -bs, --block_separator: set translate block separator (.)
+# -bl, --block_length:    set translate block length (2500)
+# -c*, --config_*: set amazon config options (see Extra AWS Config options below)
 
 // Default options:
 options = {
   stdio: [0, 1, 2], // set child process stdio
-  quiet: false,     // enable quiet mode
-  retries: 8,       // set speech synthesis retries
-  acodec: 'copy',   // set audio acodec
-  service: {
-    region: 'us-east-1', // set region to send service requests to
-    endpoint: ''         // set endpoint to send requests to
-  },
-  credentials: {
-    id: '',   // set AWS access key id
-    key: '',  // set AWS secret access key
-    path: ''  // set AWS config (json/ini) path
-  }, 
-  audio: {
-    encoding: '',  // set audio encoding format
-    frequency: 0,  // set audio frequency/sample rate in Hz
-  },
-  language: {
-    code: '',      // set language code
-    lexicons: [],  // set pronounciation lexicon names
-  },
-  voice: {
-    name: '',         // set voice name
-    gender: 'neutral' // set voice gender
-  },
-  quote: {
-    break: 250,          // set quoted text break time
-    emphasis: 'moderate' // set quoted text emphasis level
-  },
-  heading: {
-    break: 4000,        // set heading text break time
-    difference: 250,    // set heading text break difference
-    emphasis: 'strong', // set heading text emphasis level
-  },
-  ellipsis: {
-    break: 1500         // set ellipsis break time
-  },
-  dash: {
-    break: 500          // set dash break time
-  },
-  newline: {
-    break: 1000         // set newline break time
-  },
+  log: false,       // enable log
+  retries: 8,       // set translate retries
+  source: 'auto',   // set source language
+  target: 'en',     // set target language
   block: {
-    length: 5000,       // set SSML block length
-    separator: '.'      // set SSML block separator
-  }
-  config: {         // set AWS config options "directly"
-    /* AWS config options */
+    separator: '.', // set translate block separator
+    length: 2500    // set translate block length
   },
-  params: {         // set Polly synthesizeSpeech params "directly"
-    /* Polly synthesizeSpeech params */
-  }
+  config: null      // set amazon config options (see Extra AWS Config options below)
 }
 ```
+> See [Extra AWS Config] options.
 <br>
 
 
 ## similar
 
 Do you need anything similar?
-- [extra-youtubeuploader] can upload videos with caption to YouTube.
-- [extra-stillvideo] can generate video from audio and image.
+- [extra-awsconfig] can get AWS config from arguments and environment variables.
+- [extra-amazontts] can synthesize speech from text for multiple languages.
 
 Suggestions are welcome. Please [create an issue].
 <br><br>
 
 
 [![nodef](https://i.imgur.com/Ui0cS8T.jpg)](https://nodef.github.io)
-> References: [SSML], [TTS voices], [TTS client docs].
+> References: [Extra AWS Config], [AWS Translate API], [language codes], [language pairs].
 
-["Amazon Polly"]: https://aws.amazon.com/polly/
-["ffmpeg"]: https://ffmpeg.org
-[Upload Wikipedia TTS videos on YouTube]: https://www.youtube.com/results?search_query=wikipedia+audio+article
+["Amazon Translate"]: https://aws.amazon.com/translate/
 
-[Node.js]: https://nodejs.org/en/download/
-[console]: https://en.wikipedia.org/wiki/Shell_(computing)#Text_(CLI)_shells
+[extra-awsconfig]: https://www.npmjs.com/package/extra-awsconfig
+[extra-amazontts]: https://www.npmjs.com/package/extra-amazontts
+[create an issue]: https://github.com/nodef/extra-amazontranslate/issues
 
-[extra-stillvideo]: https://www.npmjs.com/package/extra-stillvideo
-[extra-youtubeuploader]: https://www.npmjs.com/package/extra-youtubeuploader
-[create an issue]: https://github.com/nodef/extra-amazontts/issues
-
-[SSML]: https://docs.aws.amazon.com/polly/latest/dg/supported-ssml.html
-[TTS voices]: https://docs.aws.amazon.com/polly/latest/dg/voicelist.html
-[TTS client docs]: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Polly.html
-
+[Extra AWS Config]: https://www.npmjs.com/package/extra-awsconfig
+[AWS Translate API]: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Translate.html
+[language codes]: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Translate.html#translateText-property
+[language pairs]: https://docs.aws.amazon.com/translate/latest/dg/pairs.html
