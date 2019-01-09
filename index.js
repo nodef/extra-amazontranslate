@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const iso6391 = require('iso-639-1').default;
+const iso6391 = require('iso-639-1');
 const awsconfig = require('extra-awsconfig');
 const AWS = require('aws-sdk');
 const got = require('got');
@@ -29,15 +29,6 @@ const OPTIONS = {
 };
 
 
-// Get text blocks.
-function blocks(txt, siz=2500, sep='.') {
-  for(var i=0, I=txt.length, z=[]; i<I; i=e) {
-    var e = txt.lastIndexOf(sep, i+siz);
-    z.push(txt.substring(i, e=e>i? e:i+siz));
-  }
-  return z;
-};
-
 // Get text split by topics.
 function splitTopic(txt, z=[]) {
   var re = /(\s*)(=+)([\w\s]+)\2(\s*\r?\n)/g;
@@ -45,7 +36,7 @@ function splitTopic(txt, z=[]) {
     z.push(txt.substring(mi, m.index), m[1]+m[2], m[3], m[2]+m[4]);
     mi = m.index+m[0].length;
   }
-  if(mi<txt.length) a.push(txt.substring(mi));
+  if(mi<txt.length) z.push(txt.substring(mi));
   return z;
 };
 
@@ -55,6 +46,7 @@ function splitBlock(txt, siz, sep, z=[]) {
     var i = txt.lastIndexOf(sep, siz);
     if(i<0) z.push(txt.substring(0, siz), '');
     else z.push(txt.substring(0, i), sep);
+    txt = txt.substring(i<0? siz:i);
   }
   if(z.length&1===0) z.push('');
   return z;
@@ -104,11 +96,11 @@ function langCode(nam) {
  */
 async function amazontranslate(txt, o) {
   var o = _.merge({}, OPTIONS, o), z='';
-  var aws = new AWS.Translate(o.config), txts=[];
   o.source = langCode(o.source); o.target = langCode(o.target);
+  var aws = new AWS.Translate(awsconfig(o.config)), txts=[];
   split(txt, o.block.length, o.block.separator, txts);
   for(var i=0, I=txts.length; i<I; i+=2) {
-    z += txts[i]? await translateRetry(aws, txts[i], o):z;
+    z += txts[i]? await translateRetry(aws, txts[i], o):'';
     z += txts[i+1]||'';
   }
   return z;
