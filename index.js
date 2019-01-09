@@ -40,7 +40,7 @@ function blocks(txt, siz=2500, sep='.') {
 
 // Translate text.
 async function translate(aws, txt, o) {
-  var params = {Text: txt, SourceLanguageCode: o.from||'auto', TargetLanguageCode: o.to||'en'};
+  var params = {Text: txt, SourceLanguageCode: o.source||'auto', TargetLanguageCode: o.target||'en'};
   if(o.service) {
     var res = await got(o.service, {body: JSON.stringify({method: 'translateText', params})});
     return JSON.parse(res.body).data.TranslatedText;
