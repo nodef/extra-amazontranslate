@@ -13,7 +13,7 @@ Sample: ["I want to order a stuffed crust pizza"](https://pastebin.com/Ln9L05Bi)
 ### install
 
 1. Run `npm install -g extra-amazontranslate` in console.
-2. To install this as a package use `npm install extra-amazontts`.
+2. To install this as a package use `npm install extra-amazontranslate`.
 <br>
 
 
