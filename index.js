@@ -143,8 +143,8 @@ async function shell(a) {
   for(var i=2, I=a.length; i<I;)
     i = options(o, a[i], a, i);
   if(o.help) return cp.execSync('less README.md', {cwd: __dirname, stdio: STDIO});
-  var txt = o.text? fs.readFileSync(o.text, 'utf8'):o.argv||'';
   try {
+    var txt = o.text? fs.readFileSync(o.text, 'utf8'):o.argv||'';
     var out = await amazontranslate(txt, o);
     if(o.output) fs.writeFileSync(o.output, out);
     else console.log(out);
