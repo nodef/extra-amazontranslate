@@ -81,9 +81,13 @@ async function translate(aws, txt, o) {
 };
 
 // Translate text with retries.
-async function translateRetry(aws, txt, o) {
+async function translateRetry(aws, txt, id, o) {
   for(var i=0, I=o.retries||8, err=null; i<I; i++) {
-    try { return await translate(aws, txt, o); }
+    try {
+      var z = await translate(aws, txt, o);
+      if(o.log) console.log('-translateRetry', id);
+      return z;
+    }
     catch(e) { err = e; }
   }
   throw err;
@@ -107,8 +111,7 @@ async function amazontranslate(txt, o) {
   split(txt, o.block.length, o.block.separator, txts);
   if(o.log) console.log('@amazontranslate:', Math.floor(txts.length/2), shorten(txt));
   for(var i=0, I=txts.length; i<I; i+=2) {
-    if(o.log) console.log('.translateRetry', i/2, shorten(txts[i]));
-    if(txts[i]) z.push(translateRetry(aws, txts[i], o));
+    if(txts[i]) z.push(translateRetry(aws, txts[i], i/2, o));
     if(txts[i+1]) z.push(txts[i+1]);
   }
   return (await Promise.all(z)).join('');
