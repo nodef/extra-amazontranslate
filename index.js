@@ -65,6 +65,7 @@ function split(txt, siz=2500, sep='.', z=[]) {
     splitBlock(tops[i], siz, sep, z);
     z.push(tops[i+1]||'');
   }
+  console.log(z);
   return z;
 };
 
