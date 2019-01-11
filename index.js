@@ -36,9 +36,9 @@ function shorten(txt, len=50) {
 
 // Get text split by topics.
 function splitTopic(txt, z=[]) {
-  var re = /(\s*)(=+)([\w\s]+)\2(\s*\r?\n)/g;
+  var re = /(\s*)(=+)(\s*)(.*?)\3\2(\s*\r?\n)/g;
   for(var m=null, mi=0; (m=re.exec(txt))!=null;) {
-    z.push(txt.substring(mi, m.index), m[1]+m[2], m[3], m[2]+m[4]);
+    z.push(txt.substring(mi, m.index), m[1]+m[2]+m[3], m[4], m[3]+m[2]+m[5]);
     mi = m.index+m[0].length;
   }
   if(mi<txt.length) z.push(txt.substring(mi));
