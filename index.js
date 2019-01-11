@@ -85,7 +85,7 @@ async function translateRetry(aws, txt, id, o) {
   for(var i=0, I=o.retries||8, err=null; i<I; i++) {
     try {
       var z = await translate(aws, txt, o);
-      if(o.log) console.log('-translateRetry', id);
+      if(o.log) console.log('-translateRetry', id, shorten(txt));
       return z;
     }
     catch(e) { err = e; }
