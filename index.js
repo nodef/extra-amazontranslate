@@ -101,17 +101,17 @@ function langCode(nam) {
  * @returns {Promise<string>} Translated text.
  */
 async function amazontranslate(txt, o) {
-  var o = _.merge({}, OPTIONS, o), z='';
+  var o = _.merge({}, OPTIONS, o), z=[];
   o.source = langCode(o.source); o.target = langCode(o.target);
   var aws = new AWS.Translate(awsconfig(o.config)), txts=[];
   split(txt, o.block.length, o.block.separator, txts);
   if(o.log) console.log('@amazontranslate:', Math.floor(txts.length/2), shorten(txt));
   for(var i=0, I=txts.length; i<I; i+=2) {
     if(o.log) console.log('.translateRetry', i/2, shorten(txts[i]));
-    z += txts[i]? await translateRetry(aws, txts[i], o):'';
-    z += txts[i+1]||'';
+    if(txts[i]) z.push(translateRetry(aws, txts[i], o));
+    if(txts[i+1]) z.push(txts[i+1]);
   }
-  return z;
+  return (await Promise.all(z)).join('');
 };
 
 // Get options from arguments.
