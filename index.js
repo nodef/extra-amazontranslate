@@ -48,13 +48,13 @@ function splitTopic(txt, z=[]) {
 // Get text split by blocks.
 function splitBlock(txt, siz, sep, z=[]) {
   if(txt.length<siz) { z.push(txt); return z; }
-  for(j=0; txt; j++) {
+  for(;txt;) {
     var i = txt.lastIndexOf(sep, siz);
     if(i<0) z.push(txt.substring(0, siz), '');
     else z.push(txt.substring(0, i), sep);
     txt = txt.substring(i<0? siz:i+1);
   }
-  if(j&1===1) z.push('');
+  z.push('');
   return z;
 };
 
