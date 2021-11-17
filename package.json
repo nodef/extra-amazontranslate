@@ -1,7 +1,7 @@
 {
   "name": "extra-amazontranslate",
-  "version": "1.1.11",
-  "description": "Translate long text from one language to another (via \"Amazon Translate\").",
+  "version": "1.1.14",
+  "description": "Translate long text from one language to another, via Amazon Translate.",
   "main": "index.js",
   "preferGlobal": true,
   "bin": {
@@ -21,8 +21,7 @@
     "cli",
     "command",
     "console",
-    "shell",
-    "merferry"
+    "shell"
   ],
   "repository": {
     "type": "git",
@@ -35,12 +34,12 @@
   "author": "wolfram77@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.715.0",
-    "boolean": "^3.0.1",
-    "extra-awsconfig": "^1.3.4",
-    "get-stdin": "^8.0.0",
-    "got": "^11.5.1",
-    "iso-639-1": "^2.1.3",
-    "lodash": "^4.17.19"
+    "iso-639-1": "^2.1.10",
+    "get-stdin": "^9.0.0",
+    "got": "^11.8.2",
+    "boolean": "^3.1.4",
+    "aws-sdk": "^2.1030.0",
+    "lodash": "^4.17.21",
+    "extra-awsconfig": "^1.3.5"
   }
 }

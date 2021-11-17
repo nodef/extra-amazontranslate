@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-const iso6391 = require('iso-639-1');
-const awsconfig = require('extra-awsconfig');
-const AWS = require('aws-sdk');
-const got = require('got');
-const getStdin = require('get-stdin');
-const boolean = require('boolean');
-const _ = require('lodash');
 const cp = require('child_process');
 const fs = require('fs');
+const boolean = require('boolean').boolean;
+const AWS     = require('aws-sdk');
+const _       = require('lodash');
+const awsconfig = require('extra-awsconfig');
+var iso6391  = null;
+var getStdin = null;
+var got      = null;
+
+
 
 
 // Global variables
@@ -29,10 +31,28 @@ const OPTIONS = {
 };
 
 
+
+
+// ES modules dependency loader :).
+async function importDependencies() {
+  if (iso6391!=null) return;
+  var $ = await Promise.all([
+    import('iso-639-1'),
+    import('get-stdin'),
+    import('got')
+  ]);
+  iso6391  = $[0].default;
+  getStdin = $[1].default;
+  got      = $[2].default;
+}
+
+
+
+
 // Shorten text.
 function shorten(txt, len=50) {
   return txt.length>len? txt.substring(0, len-4)+' ...':txt;
-};
+}
 
 // Get text split by topics.
 function splitTopic(txt, z=[]) {
@@ -43,7 +63,7 @@ function splitTopic(txt, z=[]) {
   }
   if(mi<txt.length) z.push(txt.substring(mi));
   return z;
-};
+}
 
 // Get text split by blocks.
 function splitBlock(txt, siz, sep, z=[]) {
@@ -56,7 +76,7 @@ function splitBlock(txt, siz, sep, z=[]) {
   }
   z.push('');
   return z;
-};
+}
 
 // Get text split.
 function split(txt, siz=2500, sep='.', z=[]) {
@@ -66,7 +86,10 @@ function split(txt, siz=2500, sep='.', z=[]) {
     z.push(tops[i+1]||'');
   }
   return z;
-};
+}
+
+
+
 
 // Translate text.
 async function translate(aws, txt, o) {
@@ -78,7 +101,7 @@ async function translate(aws, txt, o) {
   return new Promise((fres, frej) => aws.translateText(params, (err, data) => {
     return err? frej(err):fres(data.TranslatedText);
   }));
-};
+}
 
 // Translate text with retries.
 async function translateRetry(aws, txt, id, o) {
@@ -91,12 +114,15 @@ async function translateRetry(aws, txt, id, o) {
     catch(e) { err = e; }
   }
   throw err;
-};
+}
 
 // Get language code from name.
 function langCode(nam) {
   return nam!=='auto' && !iso6391.validate(nam)? iso6391.getCode(nam):nam;
-};
+}
+
+
+
 
 /**
  * Translate long text from one language to another (via "Amazon Translate").
@@ -105,6 +131,7 @@ function langCode(nam) {
  * @returns {Promise<string>} Translated text.
  */
 async function amazontranslate(txt, o) {
+  await importDependencies();
   var o = _.merge({}, OPTIONS, o), z=[];
   o.source = langCode(o.source); o.target = langCode(o.target);
   var aws = new AWS.Translate(awsconfig(o.config)), txts=[];
@@ -115,7 +142,7 @@ async function amazontranslate(txt, o) {
     if(txts[i+1]) z.push(txts[i+1]);
   }
   return (await Promise.all(z)).join('');
-};
+}
 
 // Get options from arguments.
 function options(o, k, a, i) {
@@ -136,13 +163,14 @@ function options(o, k, a, i) {
   else if(k.startsWith('--config_')) return awsconfig.options(o.config, '--'+k.substring(9), a, i);
   else o.argv = a[i];
   return i+1;
-};
+}
 amazontranslate.options = options;
 module.exports = amazontranslate;
 
 
 // Run on shell.
 async function shell(a) {
+  await importDependencies();
   var o = {argv: await getStdin()};
   for(var i=2, I=a.length; i<I;)
     i = options(o, a[i], a, i);
@@ -154,5 +182,5 @@ async function shell(a) {
     else console.log(out);
   }
   catch(err) { console.error(err.message); }
-};
+}
 if(require.main===module) shell(process.argv);

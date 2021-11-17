@@ -1,23 +1,25 @@
-Translate long text from one language to another (via ["Amazon Translate"]).
+Translate long text from one language to another, via [Amazon Translate].
 > Do you want to:
 > - Share your ideas to people in their local language?
 > - Translate YouTube video subtitles to another language?
 > - Or, [Upload Wikipedia TTS videos on YouTube]?
 
 Sample: ["I want to order a stuffed crust pizza"](https://pastebin.com/Ln9L05Bi).
+
+<br>
 <br>
 
 
-## setup
-
-### install
+## Setup
 
 1. Run `npm install -g extra-amazontranslate` in console.
 2. To install this as a package use `npm install extra-amazontranslate`.
+
+<br>
 <br>
 
 
-## console
+## Console
 
 ```bash
 amazontranslate "I want to order a stuffed crust pizza" --target "spanish"
@@ -34,8 +36,10 @@ echo "Dead man walking." | amazontranslate --log -ot "pt"
 ```
 > Supported [language pairs]?
 
+<br>
 
-### reference
+
+### Reference
 
 ```bash
 amazontranslate [options] <text>
@@ -65,10 +69,12 @@ $TRANSLATE_BLOCK_LENGTH    # set translate block length (2500)
 ... # see Extra AWS Config options below
 ```
 > See [Extra AWS Config] options.
+
+<br>
 <br>
 
 
-## package
+## Package
 
 ```javascript
 const amazontranslate = require('extra-amazontranslate');
@@ -80,7 +86,10 @@ await amazontranslate('Dead man walking.', {log: true, target: 'pt'});
 // get text in portugese (log enabled)
 ```
 
-### reference
+<br>
+
+
+### Reference
 
 ```javascript
 const amazontranslate = require('extra-amazontranslate');
@@ -90,8 +99,8 @@ amazontranslate(text, options={})
 // options: translation and config options
 // -> Promise <table of contents>
 
-# -r, --retries: 
-# -os, --source: 
+# -r, --retries:
+# -os, --source:
 # -ot, --target: set target language (en)
 # -bs, --block_separator: set translate block separator (.)
 # -bl, --block_length:    set translate block length (2500)
@@ -112,23 +121,27 @@ options = {
 }
 ```
 > See [Extra AWS Config] options.
+
+<br>
 <br>
 
 
-## similar
+## Similar
 
 Do you need anything similar?
 - [extra-awsconfig] can get AWS config from arguments and environment variables.
 - [extra-amazontts] can synthesize speech from text for multiple languages.
 
 Suggestions are welcome. Please [create an issue].
-<br><br>
+
+<br>
+<br>
 
 
 [![nodef](https://i.imgur.com/1ELgVHI.jpg)](https://nodef.github.io)
 > References: [Extra AWS Config], [AWS Translate API], [language codes], [language pairs].
 
-["Amazon Translate"]: https://aws.amazon.com/translate/
+[Amazon Translate]: https://aws.amazon.com/translate/
 [Upload Wikipedia TTS videos on YouTube]: https://www.youtube.com/results?search_query=wikipedia+audio+article
 
 [extra-awsconfig]: https://www.npmjs.com/package/extra-awsconfig
