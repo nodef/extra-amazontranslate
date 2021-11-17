@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 const cp = require('child_process');
 const fs = require('fs');
-const boolean = require('boolean').boolean;
-const AWS     = require('aws-sdk');
-const _       = require('lodash');
+const _         = require('lodash');
+const boolean   = require('boolean').boolean;
+const AWS       = require('aws-sdk');
 const awsconfig = require('extra-awsconfig');
 var iso6391  = null;
 var getStdin = null;
@@ -13,19 +13,19 @@ var got      = null;
 
 
 // Global variables
-const E = process.env;
-const STDIO = [0, 1, 2];
+const E       = process.env;
+const STDIO   = [0, 1, 2];
 const OPTIONS = {
-  log: boolean(E['TRANSLATE_LOG']||'0'),
-  retries: parseInt(E['TRANSLATE_RETRIES']||'8', 10),
-  source: E['TRANSLATE_SOURCE']||'auto',
-  target: E['TRANSLATE_TARGET']||'en',
+  log:      boolean(E['TRANSLATE_LOG']     || '0'),
+  retries: parseInt(E['TRANSLATE_RETRIES'] || '8', 10),
+  source: E['TRANSLATE_SOURCE'] || 'auto',
+  target: E['TRANSLATE_TARGET'] || 'en',
   service: {
-    url: E['TRANSLATE_SERVICE_URL']||null
+    url:  E['TRANSLATE_SERVICE_URL'] || null
   },
   block: {
-    separator: E['TRANSLATE_BLOCK_SEPARATOR']||'.',
-    length: parseInt(E['TRANSLATE_BLOCK_LENGTH']||'2500', 10)
+    separator:       E['TRANSLATE_BLOCK_SEPARATOR'] || '.',
+    length: parseInt(E['TRANSLATE_BLOCK_LENGTH']    || '2500', 10)
   },
   config: null
 };
@@ -71,7 +71,7 @@ function splitBlock(txt, siz, sep, z=[]) {
   for(;txt;) {
     var i = txt.lastIndexOf(sep, siz);
     if(i<0) z.push(txt.substring(0, siz), '');
-    else z.push(txt.substring(0, i), sep);
+    else    z.push(txt.substring(0, i), sep);
     txt = txt.substring(i<0? siz:i+1);
   }
   z.push('');
@@ -134,11 +134,11 @@ async function amazontranslate(txt, o) {
   await importDependencies();
   var o = _.merge({}, OPTIONS, o), z=[];
   o.source = langCode(o.source); o.target = langCode(o.target);
-  var aws = new AWS.Translate(awsconfig(o.config)), txts=[];
+  var aws  = new AWS.Translate(awsconfig(o.config)), txts=[];
   split(txt, o.block.length, o.block.separator, txts);
   if(o.log) console.log('@amazontranslate:', Math.floor(txts.length/2), shorten(txt));
   for(var i=0, I=txts.length; i<I; i+=2) {
-    if(txts[i]) z.push(translateRetry(aws, txts[i], i/2, o));
+    if(txts[i])   z.push(translateRetry(aws, txts[i], i/2, o));
     if(txts[i+1]) z.push(txts[i+1]);
   }
   return (await Promise.all(z)).join('');
@@ -147,19 +147,19 @@ async function amazontranslate(txt, o) {
 // Get options from arguments.
 function options(o, k, a, i) {
   o.config = o.config||{};
-  var e = k.indexOf('='), v = null, bool = () => true, str = () => a[++i];
-  if(e>=0) { v = k.substring(e+1); bool = () => boolean(v); str = () => v; k = k.substring(o, e); }
+  var e = k.indexOf('='), v = null, bool = () => true,       str = () => a[++i];
+  if(e>=0) { v = k.substring(e+1);  bool = () => boolean(v); str = () => v; k = k.substring(o, e); }
   if(k==='--help') o.help = bool();
-  else if(k==='-l' || k==='--log') o.log = bool();
-  else if(k==='-o' || k==='--output') o.output= str();
-  else if(k==='-t' || k==='--text') o.text = str();
-  else if(k==='-r' || k==='--retries') o.retries = parseInt(str(), 10);
-  else if(k==='-os' || k==='--source') o.source = str();
-  else if(k==='-ot' || k==='--target') o.target = str();
+  else if(k==='-l'  || k==='--log')     o.log     = bool();
+  else if(k==='-o'  || k==='--output')  o.output  = str();
+  else if(k==='-t'  || k==='--text')    o.text    = str();
+  else if(k==='-r'  || k==='--retries') o.retries = parseInt(str(), 10);
+  else if(k==='-os' || k==='--source')  o.source  = str();
+  else if(k==='-ot' || k==='--target')  o.target  = str();
   else if(k==='-bs' || k==='--block_separator') _.set(o, 'block.separator', str());
-  else if(k==='-bl' || k==='--block_length') _.set(o, 'block.length', parseInt(str(), 10));
-  else if(k==='-su' || k==='--service_url') _.set(o, 'service.url', str());
-  else if(k.startsWith('-c')) return awsconfig.options(o.config, '-'+k.substring(2), a, i);
+  else if(k==='-bl' || k==='--block_length')    _.set(o, 'block.length',    parseInt(str(), 10));
+  else if(k==='-su' || k==='--service_url')     _.set(o, 'service.url',     str());
+  else if(k.startsWith('-c'))        return awsconfig.options(o.config,  '-'+k.substring(2), a, i);
   else if(k.startsWith('--config_')) return awsconfig.options(o.config, '--'+k.substring(9), a, i);
   else o.argv = a[i];
   return i+1;

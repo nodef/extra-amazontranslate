@@ -36,8 +36,6 @@ echo "Dead man walking." | amazontranslate --log -ot "pt"
 ```
 > Supported [language pairs]?
 
-<br>
-
 
 ### Reference
 
@@ -85,8 +83,6 @@ await amazontranslate('I want to order a stuffed crust pizza', {target: 'es'});
 await amazontranslate('Dead man walking.', {log: true, target: 'pt'});
 // get text in portugese (log enabled)
 ```
-
-<br>
 
 
 ### Reference
