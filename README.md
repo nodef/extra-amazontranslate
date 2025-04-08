@@ -144,6 +144,8 @@ Suggestions are welcome. Please [create an issue].
 [extra-amazontts]: https://www.npmjs.com/package/extra-amazontts
 [create an issue]: https://github.com/nodef/extra-amazontranslate/issues
 
+![](https://ga-beacon.deno.dev/G-RC63DPBH3P:SH3Eq-NoQ9mwgYeHWxu7cw/github.com/nodef/extra-amazontranslate)
+
 [Extra AWS Config]: https://www.npmjs.com/package/extra-awsconfig
 [AWS Translate API]: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Translate.html
 [language codes]: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Translate.html#translateText-property
